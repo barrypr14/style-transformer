@@ -34,6 +34,8 @@ class Config():
     dropout = 0
     drop_rate_config = [(1, 0)]
     temperature_config = [(1, 0)]
+    twoStepTuned = True
+    threshould = 0.5
 
     slf_factor = 0.25
     cyc_factor = 0.5
@@ -52,9 +54,31 @@ def main():
     model_F = StyleTransformer(config, vocab).to(config.device)
     model_D = Discriminator(config, vocab).to(config.device)
     print(config.discriminator_method)
+
+    pretrained_F_dict = torch.load('/kaggle/input/add-embedding/style-transformer-master/yelp_glove200_F.pth')
+    pretrained_D_dict = torch.load('/kaggle/input/add-embedding/style-transformer-master/yelp_glove200_D.pth')
+
+    #  load generator - yelp pretrain model
+    model_F_dict = model_F.state_dict()
+    pretrained_F_dict = {k: v for k, v in pretrained_F_dict.items() if 'generator' not in k and 'embed' not in k}
+    model_F_dict.update(pretrained_F_dict)
+    model_F.load_state_dict(model_F_dict)
+
+    model_F.encoder.requires_grad_(False)
+    model_F.decoder.requires_grad_(False)
+    model_F.decoder.generator.requires_grad_(True)
+    # model_F.embed.token_embed.requires_grad_(True)
+    model_F.to(config.device)
+
+    model_D_dict = model_D.state_dict()
+    pretrained_D_dict = {k: v for k, v in pretrained_D_dict.items() if k.startswith('embed') == False}
+    model_D_dict.update(pretrained_D_dict)
+    model_D.load_state_dict(model_D_dict)
+
+    model_D.encoder.requires_grad_(False)
+    model_D.to(config.device)
     
     train(config, vocab, model_F, model_D, train_iters, dev_iters, test_iters)
-    
 
 if __name__ == '__main__':
     main()

@@ -321,9 +321,24 @@ def train(config, vocab, model_F, model_D, train_iters, dev_iters, test_iters):
             #save model
             torch.save(model_F.state_dict(), config.save_folder + '/ckpts/' + str(global_step) + '_F.pth')
             torch.save(model_D.state_dict(), config.save_folder + '/ckpts/' + str(global_step) + '_D.pth')
-            auto_eval(config, vocab, model_F, test_iters, global_step, temperature)
+            switch = auto_eval(config, vocab, model_F, test_iters, global_step, temperature)
+
             #for path, sub_writer in writer.all_writers.items():
             #    sub_writer.flush()
+            if switch and config.twoStepTuned:
+                for param in model_F.parameters() :
+                    param.requires_grad_(True)
+                for param in model_D.parameters() :
+                    param.requires_grad_(True)
+
+                model_F.embed.token_embed_requires_grad_(False)
+                model_D.embed.token_embed_requires_grad_(False)
+                config.lr_F = 0.00001
+                config.lr_D = 0.00001
+                
+                print("new config F", config.lr_F)
+                print("new config D", config.lr_D)
+                config.twoStepTuned = False
 
 def auto_eval(config, vocab, model_F, test_iters, global_step, temperature):
     model_F.eval()
@@ -448,3 +463,8 @@ def auto_eval(config, vocab, model_F, test_iters, global_step, temperature):
         print('*' * 20, '********', '*' * 20, file=fw)
         
     model_F.train()
+
+    if acc_pos > config.threshold and acc_neg > config.threshold :
+        return True
+    else :
+        return False
