@@ -9,13 +9,13 @@ import math
 
 class Evaluator(object):
 
-    def __init__(self):
+    def __init__(self, dataset_name):
         resource_package = __name__
 
-        yelp_acc_path = 'acc_yelp.bin'
-        yelp_ppl_path = 'ppl_yelp.binary'
-        yelp_ref0_path = 'yelp.refs.0'
-        yelp_ref1_path = 'yelp.refs.1'
+        yelp_acc_path = 'acc_'+dataset_name+'.bin'
+        yelp_ppl_path = 'ppl_'+dataset_name+'.binary'
+        yelp_ref0_path = dataset_name+'.refs.0'
+        yelp_ref1_path = dataset_name+'.refs.1'
 
         
         yelp_acc_file = pkg_resources.resource_stream(resource_package, yelp_acc_path)

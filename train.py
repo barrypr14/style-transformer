@@ -389,7 +389,7 @@ def auto_eval(config, vocab, model_F, test_iters, global_step, temperature):
     gold_text, raw_output, rev_output = zip(inference(neg_iter, 0), inference(pos_iter, 1))
 
 
-    evaluator = Evaluator()
+    evaluator = Evaluator(config.dataName)
     ref_text = evaluator.yelp_ref
 
     
