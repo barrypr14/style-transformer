@@ -1,0 +1,2 @@
+positive -> male
+negative -> female
